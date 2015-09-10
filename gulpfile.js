@@ -3,6 +3,7 @@
 var pkg = require('./package.json');
 var gulp = require('gulp');
 var $ = require('gulp-load-plugins')();
+var bower = require('main-bower-files');
 
 gulp.task('jshint', function () {
   return gulp.src('src/**/*.js')
@@ -17,6 +18,13 @@ gulp.task('javascript', function() {
     .pipe($.header("/*! <%= name %> <%= version %> */\n", { name: pkg.name, version: pkg.version } ))
     .pipe($.rename({ suffix:'.min' }))
     .pipe(gulp.dest('dist'));
+});
+
+gulp.task('dependencies', function () {
+  var mainBowerFiles = bower({filter: ['**/*.js', '**/*.css']});
+
+  gulp.src(mainBowerFiles)
+    .pipe(gulp.dest('dist'))
 });
 
 gulp.task('serve', function() {
@@ -59,7 +67,7 @@ gulp.task('protractor', function() {
       .pipe($.protractor.protractor({
           configFile: './protractor.conf.js',
           args: ['--baseUrl', 'http://127.0.0.1:' + httpPort]
-      })) 
+      }))
       .on('error', function(e) { throw e })
       .on('end', function() {
         server.close();
@@ -68,7 +76,7 @@ gulp.task('protractor', function() {
 
 gulp.task('clean', require('del').bind(null, ['.tmp', 'dist']));
 
-gulp.task('build', ['javascript'], function () {
+gulp.task('build', ['javascript', 'dependencies'], function () {
   return gulp.src('dist/**/*').pipe($.size({title: 'build', gzip: true}));
 });
 
